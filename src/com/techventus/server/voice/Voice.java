@@ -41,6 +41,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.techventus.server.voice.datatypes.AllSettings;
 import com.techventus.server.voice.datatypes.Greeting;
@@ -70,13 +71,13 @@ public class Voice {
 	private AllSettings settings;
 	
 	/** The general. */
-	String general = null;
+	private String general = null;
 	
 	/** The phones info. */
-	String phonesInfo = null;
+	private String phonesInfo = null;
 	
 	/** The rnr see. */
-	String rnrSEE = null;
+	private String rnrSEE = null;
 	
 	/** The error. */
 	private ERROR_CODE error;
@@ -85,15 +86,8 @@ public class Voice {
 	 * Short string identifying your application, for logging purposes. This string should take the form:
 	 * "companyName-applicationName-versionID". See: http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Request
 	 */
-	String source = null;
-	/**
-	 * User's full email address. It must include the domain (i.e. johndoe@gmail.com).
-	 */
-	private String user = null;
-	/**
-	 * User's password.
-	 */
-	private String pass = null;
+	private String source = null;
+
 	/**
    * Google Voice Phone Number.
    */
@@ -230,8 +224,7 @@ public class Voice {
 	//Experimental  keyFlag is just there to overload method
 	public Voice(String authToken ) throws IOException{
 		this.authToken = authToken;
-		this.pass = "UNKNOWN";
-		this.user = "UNKNOWN";
+
 		
 		this.source = "GoogleVoiceJava";
 		
@@ -268,68 +261,14 @@ public class Voice {
 	@Deprecated
 	public Voice(String user, String pass, String source, String rnrSee)
 			throws IOException {
-
-		this.user = user;
-		this.pass = pass;
 		this.rnrSEE = rnrSee;
 		this.source = source;
 
 		login();
 	}
 
-	/**
-	 * A constructor which which allows a custom source.
-	 * This Constructor enables verbose output.
-	 * 
-	 * @param user
-	 *            the username in the format of user@gmail.com or user@googlemail.com
-	 * @param pass
-	 *            the password
-	 * @param source
-	 *            Short string identifying your application, for logging purposes. This string should take the form:
-					"companyName-applicationName-versionID". See: http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Request
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public Voice(String user, String pass, String source) throws IOException {
-		init(user, pass, source, true, GOOGLE, null, null);
 
-	}
 
-	/**
-	 * Instantiates a new Voice Object. This is generally the simplest and
-	 * preferred constructor. This Constructor enables verbose output.
-	 * 
-	 * @param user
-	 *            the username in the format of user@gmail.com or user@googlemail.com
-	 * @param pass
-	 *            the pass
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public Voice(String user, String pass) throws IOException {
-		init(user, pass, null, true, GOOGLE, null, null);
-	}
-
-	/**
-	 * Instantiates a new voice. Custom Source Variable allowed, and
-	 * printDebugIntoSystemOut which allows for Verbose output.
-	 * 
-	 * @param user
-	 *            the username in the format of user@gmail.com or user@googlemail.com
-	 * @param pass
-	 *            the password
-	 * @param source
-	 *            the arbitrary source identifier.  Can be anything.
-	 * @param printDebugIntoToSystemOut
-	 *            the print debug into to system out
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public Voice(String user, String pass, String source,
-			boolean printDebugIntoToSystemOut) throws IOException {
-		init(user, pass, source, printDebugIntoToSystemOut, GOOGLE, null, null);
-	}
 	
 	/**
 	 * Instantiates a new voice. Custom Source Variable allowed, and
@@ -410,8 +349,7 @@ public class Voice {
 		if(accountType==GOOGLE||accountType==HOSTED||accountType==HOSTED_OR_GOOGLE) {
 			this.account_type = accountType;
 			this.PRINT_TO_CONSOLE = printDebugIntoToSystemOut;
-			this.user = user;
-			this.pass = pass;
+
 			// this.rnrSEE = rnrSee;
 			if (source != null) {
 				this.source = source;
@@ -426,15 +364,6 @@ public class Voice {
 			throw new IOException("AccountType not valid");
 		}
 	}
-	
-        /**
-         * Returns the username
-         * @return username for gvoice account
-         */
-        public String getUsername()
-        {
-            return this.user;
-        }
 	
 	/**
 	 * Returns the Greeting list - Lazy
@@ -1826,6 +1755,12 @@ public class Voice {
 
 		return out;
 	}
+
+
+	public void updateCookies(Map<String,String> cookieMap)
+	{
+		GVCookieManager.getInstance().setCookies(cookieMap);
+	}
 	
 
 	/**
@@ -1837,7 +1772,7 @@ public class Voice {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	String get(String urlString) throws IOException {
+	public String get(String urlString) throws IOException {
 		URL url = new URL(urlString);
 		//+ "?auth=" + URLEncoder.encode(authToken, enc));
 
@@ -1847,6 +1782,7 @@ public class Voice {
 		conn.setRequestProperty(
 						"User-agent",
 						USER_AGENT);
+		conn.setRequestProperty("Cookie", GVCookieManager.getInstance().listAllOutgoingCookies());
 		conn.setInstanceFollowRedirects(false); // will follow redirects of same protocol http to http, but does not follow from http to https for example if set to true
 
 		// Get the response
@@ -1953,10 +1889,7 @@ public class Voice {
 
 		String data = URLEncoder.encode("accountType", enc) + "="
 				+ URLEncoder.encode(account_type, enc);
-		data += "&" + URLEncoder.encode("Email", enc) + "="
-				+ URLEncoder.encode(user, enc);
-		data += "&" + URLEncoder.encode("Passwd", enc) + "="
-				+ URLEncoder.encode(pass, enc);
+
 		data += "&" + URLEncoder.encode("service", enc) + "="
 				+ URLEncoder.encode(SERVICE, enc);
 		data += "&" + URLEncoder.encode("source", enc) + "="

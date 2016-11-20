@@ -7,12 +7,7 @@ import gvjava.org.json.JSONObject;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -181,9 +176,10 @@ public class SMSParser {
 	 */
 	private void addSMSsToThread(SMSThread thread, Element messages) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(
-				GoogleVoice.DATE_FORMAT);
+				GoogleVoice.DATE_FORMAT, Locale.US);
 		SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
-				GoogleVoice.DATETIME_FORMAT);
+				GoogleVoice.DATETIME_FORMAT,Locale.US);
+
 		@SuppressWarnings("unchecked")
 		List<Element> elements = messages
 				.selectNodes(XPathQuery.MESSAGE_SMS_ROW);
@@ -206,6 +202,10 @@ public class SMSParser {
 						&& from.equals(GoogleVoice.CONTACT_ME)) {
 					contact = me;
 				}
+				Date t = new Date();
+				System.out.println("parse datetimeformat "+dateTimeFormat.format(t));
+				System.out.println("parse dateFormat "+dateFormat.format(t));
+
 				Date time = dateTimeFormat.parse(dateFormat.format(thread
 						.getDate())
 						+ " " + dateTime);
