@@ -227,8 +227,7 @@ public class Voice {
 
 		
 		this.source = "GoogleVoiceJava";
-		
-	
+
 		this.general = 	getGeneral();
 		this.setRNRSEE();
 			
@@ -431,9 +430,9 @@ public class Voice {
 		return settings;
 	}
 
-	// public Voice(){
-	// authToken = "abcde";
-	// }
+	 public Voice(){
+	 	authToken = "abcde";
+	 }
 
 	/**
 	 * Fetches and returns the raw page source code for the Inbox.
@@ -894,15 +893,18 @@ public class Voice {
 		calldata.append("&phoneType=");
 		calldata.append(URLEncoder.encode(phoneType, enc));
 		calldata.append("&remember=0");
-		calldata.append("&_rnr_se=");
-		calldata.append(URLEncoder.encode(rnrSEE, enc));
-		
+		if(rnrSEE!=null)
+		{
+			calldata.append("&_rnr_se=");
+			calldata.append(URLEncoder.encode(rnrSEE, enc));
+		}
 		
 		URL callURL = new URL("https://www.google.com/voice/b/0/call/connect/");
 
 		URLConnection callconn = callURL.openConnection();
 		callconn.setRequestProperty("Authorization","GoogleLogin auth="+authToken);
 		callconn.setRequestProperty("User-agent",USER_AGENT);
+		callconn.setRequestProperty("Cookie", GVCookieManager.getInstance().listAllOutgoingCookies());
 
 		callconn.setDoOutput(true);
 		OutputStreamWriter callwr = new OutputStreamWriter(callconn
